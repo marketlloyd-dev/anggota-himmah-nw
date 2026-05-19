@@ -44,7 +44,6 @@ export function AppProvider({ children }) {
   const saveAnggotaList = async (data) => {
     setAnggotaList(data);
     localStorage.setItem('himmah_anggota', JSON.stringify(data));
-    // Simpan ke Blob melalui API di project ini
     try {
       await fetch('/api/save-data', {
         method: 'POST',

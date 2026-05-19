@@ -1,7 +1,6 @@
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
-// Ikon SVG inline
 const LogoutIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -55,16 +54,15 @@ export default function DashboardAnggota() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="glass rounded-2xl p-6 text-center">
             <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-green-400/50 mb-4">
-              <img src={currentAnggota.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentAnggota.nama)}&background=004d24&color=fff&size=150`}
-                alt={currentAnggota.nama} className="w-full h-full object-cover" />
+              <img
+                src={currentAnggota.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentAnggota.nama)}&background=004d24&color=fff&size=150`}
+                alt={currentAnggota.nama}
+                className="w-full h-full object-cover"
+              />
             </div>
             <h3 className="text-white font-bold text-lg">{currentAnggota.nama}</h3>
-            <p className="text-green-300/70 text-sm">NIM: {currentAnggota.nim}</p>
-            <p className="text-green-300/70 text-sm">{currentAnggota.jurusan || '-'}</p>
-            <p className="text-green-300/70 text-sm">Angkatan {currentAnggota.angkatan || '-'}</p>
-            {currentAnggota.divisi && (
-              <span className="inline-block mt-2 px-3 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">{currentAnggota.divisi}</span>
-            )}
+            <p className="text-green-300/70 text-sm">Instansi: {currentAnggota.instansi || '-'}</p>
+            <p className="text-green-300/70 text-sm">Divisi: {currentAnggota.divisi || '-'}</p>
           </div>
 
           <div className="lg:col-span-2 glass rounded-2xl p-6">

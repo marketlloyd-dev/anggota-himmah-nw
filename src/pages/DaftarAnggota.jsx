@@ -16,11 +16,9 @@ export default function DaftarAnggota() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     kode: '',
-    nim: '',
     nama: '',
     password: '',
-    jurusan: '',
-    angkatan: '',
+    instansi: '',
     divisi: '',
   });
   const [error, setError] = useState('');
@@ -28,16 +26,17 @@ export default function DaftarAnggota() {
 
   const handleDaftar = (e) => {
     e.preventDefault();
-    if (!form.kode || !form.nim || !form.nama || !form.password) {
-      setError('Kode undangan, NIM, Nama, dan Password wajib diisi');
+    if (!form.kode || !form.nama || !form.password || !form.instansi || !form.divisi) {
+      setError('Semua kolom wajib diisi');
       return;
     }
     if (form.kode !== inviteCode) {
       setError('Kode undangan salah!');
       return;
     }
-    if (anggotaList.find(a => a.nim === form.nim)) {
-      setError('NIM sudah terdaftar');
+    // Cek duplikat berdasarkan nama (atau bisa kombinasi nama+instansi)
+    if (anggotaList.find(a => a.nama.toLowerCase() === form.nama.toLowerCase() && a.instansi.toLowerCase() === form.instansi.toLowerCase())) {
+      setError('Nama dan instansi sudah terdaftar');
       return;
     }
 
@@ -61,11 +60,9 @@ export default function DaftarAnggota() {
     }
 
     const newAnggota = {
-      nim: form.nim,
       nama: form.nama,
       password: form.password,
-      jurusan: form.jurusan,
-      angkatan: form.angkatan,
+      instansi: form.instansi,
       divisi: form.divisi,
       foto: '',
     };
@@ -110,17 +107,6 @@ export default function DaftarAnggota() {
             />
           </div>
           <div>
-            <label className="text-green-300 text-sm font-medium">NIM *</label>
-            <input
-              type="text"
-              value={form.nim}
-              onChange={(e) => setForm({ ...form, nim: e.target.value })}
-              className="w-full mt-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-green-400"
-              placeholder="Masukkan NIM"
-              required
-            />
-          </div>
-          <div>
             <label className="text-green-300 text-sm font-medium">Nama Lengkap *</label>
             <input
               type="text"
@@ -143,31 +129,23 @@ export default function DaftarAnggota() {
             />
           </div>
           <div>
-            <label className="text-green-300 text-sm font-medium">Jurusan</label>
+            <label className="text-green-300 text-sm font-medium">Instansi (Nama Kampus) *</label>
             <input
               type="text"
-              value={form.jurusan}
-              onChange={(e) => setForm({ ...form, jurusan: e.target.value })}
+              value={form.instansi}
+              onChange={(e) => setForm({ ...form, instansi: e.target.value })}
               className="w-full mt-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-green-400"
-              placeholder="Masukkan jurusan"
+              placeholder="Masukkan nama kampus"
+              required
             />
           </div>
           <div>
-            <label className="text-green-300 text-sm font-medium">Angkatan</label>
-            <input
-              type="text"
-              value={form.angkatan}
-              onChange={(e) => setForm({ ...form, angkatan: e.target.value })}
-              className="w-full mt-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-green-400"
-              placeholder="Masukkan angkatan"
-            />
-          </div>
-          <div>
-            <label className="text-green-300 text-sm font-medium">Divisi</label>
+            <label className="text-green-300 text-sm font-medium">Divisi *</label>
             <select
               value={form.divisi}
               onChange={(e) => setForm({ ...form, divisi: e.target.value })}
               className="w-full mt-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-green-400"
+              required
             >
               <option value="" className="bg-gray-800">-- Pilih Divisi --</option>
               <option value="Ketua Umum" className="bg-gray-800">Ketua Umum</option>
