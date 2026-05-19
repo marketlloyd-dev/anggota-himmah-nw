@@ -1,73 +1,80 @@
+// src/pages/DashboardAnggota.jsx (Portal Anggota)
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
+// ---------- Ikon SVG (tanpa lucide-react) ----------
 const LogoutIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-    <polyline points="16 17 21 12 16 7"></polyline>
-    <line x1="21" y1="12" x2="9" y2="12"></line>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );
 
 const NewspaperIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 11a9 9 0 0 1 9 9"></path>
-    <path d="M4 4a16 16 0 0 1 16 16"></path>
-    <circle cx="5" cy="19" r="1"></circle>
+    <path d="M4 11a9 9 0 0 1 9 9" />
+    <path d="M4 4a16 16 0 0 1 16 16" />
+    <circle cx="5" cy="19" r="1" />
   </svg>
 );
 
 const CalendarIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-    <line x1="16" y1="2" x2="16" y2="6"></line>
-    <line x1="8" y1="2" x2="8" y2="6"></line>
-    <line x1="3" y1="10" x2="21" y2="10"></line>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
   </svg>
 );
 
 const CheckIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"></polyline>
+    <polyline points="20 6 9 17 4 12" />
   </svg>
 );
 
 const EditIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 );
 
 const BellIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
   </svg>
 );
 
 const ClockIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"></circle>
-    <polyline points="12 6 12 12 16 14"></polyline>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
   </svg>
 );
 
+// ---------- Komponen Utama ----------
 export default function DashboardAnggota() {
-  const { 
-    currentAnggota, 
-    anggotaLogout, 
-    beritaInternal, 
-    presensiList, 
-    savePresensi, 
-    pengumumanList, 
-    editProfil, 
-    profilEditSukses 
+  const {
+    currentAnggota,
+    anggotaLogout,
+    beritaInternal,
+    presensiList,
+    savePresensi,
+    pengumumanList,
+    editProfil,
+    profilEditSukses
   } = useApp();
   const navigate = useNavigate();
-  
+
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [presensiStatus, setPresensiStatus] = useState(null); // 'sukses' | 'gagal' | null
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // State untuk edit profil
   const [editForm, setEditForm] = useState({
     nama: currentAnggota?.nama || '',
     password: '',
@@ -78,22 +85,24 @@ export default function DashboardAnggota() {
   });
   const [editError, setEditError] = useState('');
 
+  // Jika belum login, redirect ke halaman login
   if (!currentAnggota) {
     navigate('/', { replace: true });
     return null;
   }
 
+  // ---------- Handler Presensi ----------
   const handlePresensi = async () => {
     const today = new Date().toISOString().slice(0, 10);
     const sudahPresensi = presensiList.find(
-      p => p.nim === currentAnggota.nim && p.tanggal === today
+      (p) => p.nim === currentAnggota.nim && p.tanggal === today
     );
-    
+
     if (sudahPresensi) {
       alert('Anda sudah presensi hari ini!');
       return;
     }
-    
+
     const presensi = {
       id: Date.now(),
       nim: currentAnggota.nim,
@@ -102,24 +111,33 @@ export default function DashboardAnggota() {
       tanggal: today,
       waktu: new Date().toLocaleTimeString('id-ID'),
     };
-    
-    await savePresensi(presensi);
-    alert('Presensi berhasil! ✅');
+
+    try {
+      await savePresensi(presensi);
+      setPresensiStatus('sukses');
+      setErrorMessage('');
+      setTimeout(() => setPresensiStatus(null), 3000);
+    } catch (err) {
+      setPresensiStatus('gagal');
+      setErrorMessage(err.message || 'Gagal menyimpan presensi. Periksa koneksi atau coba lagi.');
+      setTimeout(() => setPresensiStatus(null), 5000);
+    }
   };
 
+  // ---------- Handler Edit Profil ----------
   const handleEditProfil = (e) => {
     e.preventDefault();
-    
+
     if (editForm.passwordBaru && !editForm.password) {
       setEditError('Masukkan password lama untuk mengubah password');
       return;
     }
-    
+
     if (editForm.passwordBaru && editForm.password !== currentAnggota.password) {
       setEditError('Password lama salah');
       return;
     }
-    
+
     const updated = {
       ...currentAnggota,
       nama: editForm.nama,
@@ -127,13 +145,13 @@ export default function DashboardAnggota() {
       angkatan: editForm.angkatan,
       divisi: editForm.divisi,
     };
-    
+
     if (editForm.passwordBaru) {
       updated.password = editForm.passwordBaru;
     }
-    
+
     editProfil(updated);
-    
+
     setEditForm({
       nama: updated.nama,
       password: '',
@@ -145,6 +163,7 @@ export default function DashboardAnggota() {
     setEditError('');
   };
 
+  // ---------- Render ----------
   return (
     <div className="min-h-screen pb-16">
       {/* Header */}
@@ -157,9 +176,9 @@ export default function DashboardAnggota() {
             <p className="text-green-300 mt-1">Selamat datang, {currentAnggota.nama}</p>
           </div>
           <button
-            onClick={() => { 
-              anggotaLogout(); 
-              navigate('/', { replace: true }); 
+            onClick={() => {
+              anggotaLogout();
+              navigate('/', { replace: true });
             }}
             className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-300 rounded-xl hover:bg-red-500/30 transition-colors text-sm"
           >
@@ -171,70 +190,96 @@ export default function DashboardAnggota() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
         {/* Tab Navigasi */}
         <div className="flex gap-2 mb-6 overflow-x-auto">
-          <button 
-            onClick={() => setActiveTab('dashboard')} 
+          <button
+            onClick={() => setActiveTab('dashboard')}
             className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
-              activeTab === 'dashboard' 
-                ? 'bg-green-500 text-white' 
-                : 'bg-white/10 text-green-300 hover:bg-white/20'
+              activeTab === 'dashboard' ? 'bg-green-500 text-white' : 'bg-white/10 text-green-300 hover:bg-white/20'
             }`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
             Dashboard
           </button>
-          <button 
-            onClick={() => setActiveTab('presensi')} 
+          <button
+            onClick={() => setActiveTab('presensi')}
             className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
-              activeTab === 'presensi' 
-                ? 'bg-green-500 text-white' 
-                : 'bg-white/10 text-green-300 hover:bg-white/20'
+              activeTab === 'presensi' ? 'bg-green-500 text-white' : 'bg-white/10 text-green-300 hover:bg-white/20'
             }`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
             Presensi
           </button>
-          <button 
-            onClick={() => setActiveTab('edit')} 
+          <button
+            onClick={() => setActiveTab('edit')}
             className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
-              activeTab === 'edit' 
-                ? 'bg-green-500 text-white' 
-                : 'bg-white/10 text-green-300 hover:bg-white/20'
+              activeTab === 'edit' ? 'bg-green-500 text-white' : 'bg-white/10 text-green-300 hover:bg-white/20'
             }`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
             Edit Profil
           </button>
         </div>
 
-        {/* Menu Grid */}
+        {/* Grid Menu */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           <button onClick={() => navigate('/kalender')} className="glass rounded-xl p-4 text-center hover:scale-[1.02] transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
             <p className="text-white text-xs font-medium">Kalender</p>
           </button>
           <button onClick={() => navigate('/dokumen')} className="glass rounded-xl p-4 text-center hover:scale-[1.02] transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
             <p className="text-white text-xs font-medium">Upload</p>
           </button>
           <button onClick={() => navigate('/forum')} className="glass rounded-xl p-4 text-center hover:scale-[1.02] transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
             <p className="text-white text-xs font-medium">Forum</p>
           </button>
           <button onClick={() => navigate('/kartu')} className="glass rounded-xl p-4 text-center hover:scale-[1.02] transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
             <p className="text-white text-xs font-medium">Kartu</p>
           </button>
           <button onClick={() => navigate('/poin')} className="glass rounded-xl p-4 text-center hover:scale-[1.02] transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" className="mx-auto mb-2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" className="mx-auto mb-2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
             <p className="text-white text-xs font-medium">Poin</p>
           </button>
           <button onClick={() => navigate('/laporan')} className="glass rounded-xl p-4 text-center hover:scale-[1.02] transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" className="mx-auto mb-2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
             <p className="text-white text-xs font-medium">Laporan</p>
           </button>
         </div>
 
-        {/* Tab Dashboard */}
+        {/* ========== Tab Dashboard ========== */}
         {activeTab === 'dashboard' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Profil + Tombol Presensi */}
@@ -260,16 +305,28 @@ export default function DashboardAnggota() {
                   {currentAnggota.divisi}
                 </span>
               )}
-              
+
+              {/* Status Presensi */}
+              {presensiStatus === 'sukses' && (
+                <div className="mt-2 bg-green-500/20 text-green-300 text-sm py-2 px-4 rounded-lg">
+                  ✅ Presensi berhasil!
+                </div>
+              )}
+              {presensiStatus === 'gagal' && (
+                <div className="mt-2 bg-red-500/20 text-red-300 text-sm py-2 px-4 rounded-lg">
+                  ❌ {errorMessage}
+                </div>
+              )}
+
               <button
                 onClick={handlePresensi}
                 className="mt-4 w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
               >
                 <CheckIcon /> Presensi Hari Ini
               </button>
-              
+
               <p className="text-green-300/50 text-xs mt-2">
-                Total presensi: {presensiList.filter(p => p.nim === currentAnggota.nim).length} kali
+                Total presensi: {presensiList.filter((p) => p.nim === currentAnggota.nim).length} kali
               </p>
             </div>
 
@@ -318,20 +375,20 @@ export default function DashboardAnggota() {
           </div>
         )}
 
-        {/* Tab Presensi */}
+        {/* ========== Tab Presensi ========== */}
         {activeTab === 'presensi' && (
           <div className="glass rounded-2xl p-6">
-            <h2 className="text-white font-bold text-lg mb-4">📋 Riwayat Presensi Saya</h2>
+            <h2 className="text-white font-bold text-lg mb-4">Riwayat Presensi Saya</h2>
             <p className="text-green-300/60 text-sm mb-4">
-              Total kehadiran: {presensiList.filter(p => p.nim === currentAnggota.nim).length} kali
+              Total kehadiran: {presensiList.filter((p) => p.nim === currentAnggota.nim).length} kali
             </p>
-            
-            {presensiList.filter(p => p.nim === currentAnggota.nim).length === 0 ? (
+
+            {presensiList.filter((p) => p.nim === currentAnggota.nim).length === 0 ? (
               <p className="text-green-300/60 text-sm">Belum ada riwayat presensi.</p>
             ) : (
               <div className="space-y-2">
                 {presensiList
-                  .filter(p => p.nim === currentAnggota.nim)
+                  .filter((p) => p.nim === currentAnggota.nim)
                   .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
                   .map((p) => (
                     <div key={p.id} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
@@ -351,19 +408,19 @@ export default function DashboardAnggota() {
           </div>
         )}
 
-        {/* Tab Edit Profil */}
+        {/* ========== Tab Edit Profil ========== */}
         {activeTab === 'edit' && (
           <div className="glass rounded-2xl p-6">
             <h2 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
               <EditIcon /> Edit Profil
             </h2>
-            
+
             {profilEditSukses && (
               <p className="text-green-400 text-sm bg-green-500/10 p-3 rounded-lg mb-4">
                 ✅ Profil berhasil diperbarui!
               </p>
             )}
-            
+
             <form onSubmit={handleEditProfil} className="space-y-3 max-w-md">
               <div>
                 <label className="text-green-300 text-xs">Nama Lengkap</label>
@@ -410,7 +467,7 @@ export default function DashboardAnggota() {
                   <option value="Divisi Minat & Bakat" className="bg-gray-800">Divisi Minat & Bakat</option>
                 </select>
               </div>
-              
+
               <div className="border-t border-white/10 pt-4 mt-4">
                 <p className="text-green-300 text-xs mb-2">Ganti Password (opsional)</p>
                 <div className="space-y-3">
@@ -436,11 +493,11 @@ export default function DashboardAnggota() {
                   </div>
                 </div>
               </div>
-              
+
               {editError && (
                 <p className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg">{editError}</p>
               )}
-              
+
               <button
                 type="submit"
                 className="w-full px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-medium"

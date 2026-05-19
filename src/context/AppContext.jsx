@@ -1,3 +1,4 @@
+// src/context/AppContext.jsx (Portal Anggota) – tanpa localStorage untuk presensi
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AppContext = createContext();
@@ -18,18 +19,14 @@ export function AppProvider({ children }) {
   const [profilEditSukses, setProfilEditSukses] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
+  // Muat semua data dari Blob saat mount
   useEffect(() => {
     const loadData = async () => {
       try {
         const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
         if (res.ok) {
           const json = await res.json();
-
-          // 1. Ambil pengurus inti (Ketua, Sekretaris, Bendahara)
-          const pengurusData = json.pengurus || { ketua: { nama: '' }, sekretaris: { nama: '' }, bendahara: { nama: '' } };
-          setPengurus(pengurusData);
-
-          // 2. Ambil semua anggota dari divisi
+          // Bangun daftar anggota dari divisi + pengurus
           const anggotaDariDivisi = [];
           if (json.divisi) {
             json.divisi.forEach(div => {
@@ -50,53 +47,28 @@ export function AppProvider({ children }) {
               }
             });
           }
-
-          // 3. Tambahkan pengurus inti ke daftar anggota (jika belum ada)
-          if (pengurusData.ketua?.nama && pengurusData.ketua.nama.trim() !== '') {
-            const sudahAda = anggotaDariDivisi.find(a => a.nama === pengurusData.ketua.nama);
-            if (!sudahAda) {
-              anggotaDariDivisi.push({
-                nama: pengurusData.ketua.nama,
-                divisi: 'Ketua Umum',
-                jabatan: 'Ketua Umum',
-                foto: pengurusData.ketua.foto || '',
-                password: '1234',
-                jurusan: '',
-                angkatan: '',
-              });
+          // Tambahkan pengurus inti jika belum ada
+          const p = json.pengurus || { ketua: {}, sekretaris: {}, bendahara: {} };
+          ['ketua', 'sekretaris', 'bendahara'].forEach(jabatan => {
+            const nama = p[jabatan]?.nama;
+            if (nama && nama.trim() !== '') {
+              if (!anggotaDariDivisi.find(a => a.nama === nama)) {
+                anggotaDariDivisi.push({
+                  nama,
+                  divisi: jabatan === 'ketua' ? 'Ketua Umum' : jabatan.charAt(0).toUpperCase() + jabatan.slice(1),
+                  jabatan: jabatan.charAt(0).toUpperCase() + jabatan.slice(1),
+                  foto: p[jabatan]?.foto || '',
+                  password: '1234',
+                  jurusan: '',
+                  angkatan: '',
+                });
+              }
             }
-          }
-          if (pengurusData.sekretaris?.nama && pengurusData.sekretaris.nama.trim() !== '') {
-            const sudahAda = anggotaDariDivisi.find(a => a.nama === pengurusData.sekretaris.nama);
-            if (!sudahAda) {
-              anggotaDariDivisi.push({
-                nama: pengurusData.sekretaris.nama,
-                divisi: 'Sekretaris',
-                jabatan: 'Sekretaris',
-                foto: pengurusData.sekretaris.foto || '',
-                password: '1234',
-                jurusan: '',
-                angkatan: '',
-              });
-            }
-          }
-          if (pengurusData.bendahara?.nama && pengurusData.bendahara.nama.trim() !== '') {
-            const sudahAda = anggotaDariDivisi.find(a => a.nama === pengurusData.bendahara.nama);
-            if (!sudahAda) {
-              anggotaDariDivisi.push({
-                nama: pengurusData.bendahara.nama,
-                divisi: 'Bendahara',
-                jabatan: 'Bendahara',
-                foto: pengurusData.bendahara.foto || '',
-                password: '1234',
-                jurusan: '',
-                angkatan: '',
-              });
-            }
-          }
+          });
 
           setAllAnggota(anggotaDariDivisi);
           setBeritaInternal(json.beritaInternal || []);
+          setPengurus(p);
           setPresensiList(json.presensiList || []);
           setPengumumanList(json.pengumumanList || []);
           setKalenderKegiatan(json.kalenderKegiatan || []);
@@ -108,32 +80,30 @@ export function AppProvider({ children }) {
         console.warn('Gagal memuat data dari Blob:', err);
       }
 
+      // Muat sesi anggota yang tersimpan
       const savedLogin = localStorage.getItem('himmah_current_anggota');
-      if (savedLogin) {
-        setCurrentAnggota(JSON.parse(savedLogin));
-      }
+      if (savedLogin) setCurrentAnggota(JSON.parse(savedLogin));
+
       setDataLoaded(true);
     };
     loadData();
   }, []);
 
+  // Login / Logout
   const anggotaLogin = (anggota) => {
     setCurrentAnggota(anggota);
     localStorage.setItem('himmah_current_anggota', JSON.stringify(anggota));
   };
-
   const anggotaLogout = () => {
     setCurrentAnggota(null);
     localStorage.removeItem('himmah_current_anggota');
   };
 
+  // Edit profil anggota (disimpan ke Blob)
   const editProfil = async (data) => {
-    const updated = allAnggota.map(a => {
-      if (a.nama === data.nama) {
-        return { ...a, jurusan: data.jurusan, angkatan: data.angkatan, foto: data.foto, password: data.password || a.password };
-      }
-      return a;
-    });
+    const updated = allAnggota.map(a =>
+      a.nama === data.nama ? { ...a, jurusan: data.jurusan, angkatan: data.angkatan, foto: data.foto, password: data.password || a.password } : a
+    );
     setAllAnggota(updated);
     if (currentAnggota && currentAnggota.nama === data.nama) {
       const updatedCurrent = { ...currentAnggota, jurusan: data.jurusan, angkatan: data.angkatan, foto: data.foto, password: data.password || currentAnggota.password };
@@ -153,49 +123,48 @@ export function AppProvider({ children }) {
     }
   };
 
- const savePresensi = async (presensiBaru) => {
-  try {
-    // 1. Ambil presensi terbaru dari Blob dulu (dengan token)
-    const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
+  // ========== INI FUNGSI PENTING: savePresensi murni ke Blob ==========
+  const savePresensi = async (presensiBaru) => {
+    // 1. Ambil data terbaru dari Blob
     let currentData = {};
-    if (res.ok) {
-      currentData = await res.json();
+    try {
+      const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
+      if (res.ok) currentData = await res.json();
+    } catch (err) {
+      console.warn('Gagal fetch data terbaru:', err);
     }
 
-    // 2. Gabungkan presensi baru
+    // 2. Gabungkan presensi baru dengan yang sudah ada
     const presensiLama = currentData.presensiList || [];
     const updatedPresensi = [presensiBaru, ...presensiLama].slice(0, 500);
 
-    // 3. Update state lokal
-    setPresensiList(updatedPresensi);
-    localStorage.setItem('himmah_presensi', JSON.stringify(updatedPresensi));
+    // 3. Gabungkan kembali ke seluruh data
+    const mergedData = { ...currentData, presensiList: updatedPresensi };
 
-    // 4. Kirim ke API untuk simpan ke Blob
+    // 4. Simpan ke Blob melalui API (pastikan API mengembalikan response)
     const response = await fetch('/api/save-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ presensiList: updatedPresensi }),
+      body: JSON.stringify(mergedData),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Gagal menyimpan ke Blob');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Gagal menyimpan presensi ke server');
     }
 
-    console.log('Presensi berhasil disimpan ke Blob');
-  } catch (err) {
-    console.error('Gagal menyimpan presensi:', err);
-    alert('Gagal menyimpan presensi. Coba lagi nanti.');
-  }
-};
+    // 5. Update state lokal
+    setPresensiList(updatedPresensi);
+  };
 
-  const savePengumuman = (p) => { const u = [p, ...pengumumanList]; setPengumumanList(u); localStorage.setItem('himmah_pengumuman', JSON.stringify(u)); };
-  const deletePengumuman = (id) => { const u = pengumumanList.filter(p => p.id !== id); setPengumumanList(u); localStorage.setItem('himmah_pengumuman', JSON.stringify(u)); };
-  const rsvpEvent = (id, nama) => { const u = kalenderKegiatan.map(k => k.id === id ? { ...k, rsvpList: [...(k.rsvpList || []), nama] } : k); setKalenderKegiatan(u); localStorage.setItem('himmah_kalender', JSON.stringify(u)); };
-  const saveDokumen = (d) => { const u = [d, ...dokumenList]; setDokumenList(u); localStorage.setItem('himmah_dokumen', JSON.stringify(u)); };
-  const deleteDokumen = (id) => { const u = dokumenList.filter(d => d.id !== id); setDokumenList(u); localStorage.setItem('himmah_dokumen', JSON.stringify(u)); };
-  const saveForumMessage = (msg) => { const u = [...forumMessages, msg]; setForumMessages(u); localStorage.setItem('himmah_forum', JSON.stringify(u)); };
-  const saveLaporan = (l) => { const u = [l, ...laporanList]; setLaporanList(u); localStorage.setItem('himmah_laporan', JSON.stringify(u)); };
+  // Fungsi‑fungsi lain (pengumuman, kalender, dokumen, forum, laporan)
+  const savePengumuman = (p) => { const u = [p, ...pengumumanList]; setPengumumanList(u); };
+  const deletePengumuman = (id) => { const u = pengumumanList.filter(p => p.id !== id); setPengumumanList(u); };
+  const rsvpEvent = (id, nama) => { const u = kalenderKegiatan.map(k => k.id === id ? { ...k, rsvpList: [...(k.rsvpList || []), nama] } : k); setKalenderKegiatan(u); };
+  const saveDokumen = (d) => { const u = [d, ...dokumenList]; setDokumenList(u); };
+  const deleteDokumen = (id) => { const u = dokumenList.filter(d => d.id !== id); setDokumenList(u); };
+  const saveForumMessage = (msg) => { const u = [...forumMessages, msg]; setForumMessages(u); };
+  const saveLaporan = (l) => { const u = [l, ...laporanList]; setLaporanList(u); };
 
   if (!dataLoaded) {
     return (
