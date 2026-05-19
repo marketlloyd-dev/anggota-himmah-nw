@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap');
-@import "tailwindcss";
 
+@import "tailwindcss";
 @theme {
   --font-poppins: 'Poppins', sans-serif;
   --font-playfair: 'Playfair Display', serif;
