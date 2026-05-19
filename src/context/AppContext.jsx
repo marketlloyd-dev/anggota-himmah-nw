@@ -1,4 +1,3 @@
-// src/context/AppContext.jsx (Portal Anggota)
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AppContext = createContext();
@@ -19,14 +18,12 @@ export function AppProvider({ children }) {
   const [profilEditSukses, setProfilEditSukses] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Muat semua data dari Blob saat mount
   useEffect(() => {
     const loadData = async () => {
       try {
         const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
         if (res.ok) {
           const json = await res.json();
-          // Bangun daftar anggota dari divisi + pengurus
           const anggotaDariDivisi = [];
           if (json.divisi) {
             json.divisi.forEach(div => {
@@ -47,7 +44,6 @@ export function AppProvider({ children }) {
               }
             });
           }
-          // Tambahkan pengurus inti jika belum ada
           const p = json.pengurus || { ketua: {}, sekretaris: {}, bendahara: {} };
           ['ketua', 'sekretaris', 'bendahara'].forEach(jabatan => {
             const nama = p[jabatan]?.nama;
@@ -88,7 +84,6 @@ export function AppProvider({ children }) {
     loadData();
   }, []);
 
-  // Login / Logout
   const anggotaLogin = (anggota) => {
     setCurrentAnggota(anggota);
     localStorage.setItem('himmah_current_anggota', JSON.stringify(anggota));
@@ -98,7 +93,6 @@ export function AppProvider({ children }) {
     localStorage.removeItem('himmah_current_anggota');
   };
 
-  // Edit profil anggota (disimpan ke Blob)
   const editProfil = async (data) => {
     const updated = allAnggota.map(a =>
       a.nama === data.nama ? { ...a, jurusan: data.jurusan, angkatan: data.angkatan, foto: data.foto, password: data.password || a.password } : a
@@ -112,7 +106,6 @@ export function AppProvider({ children }) {
     setProfilEditSukses(true);
     setTimeout(() => setProfilEditSukses(false), 3000);
     try {
-      // Ambil data terbaru dari Blob, gabungkan, lalu kirim
       let currentData = {};
       const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
       if (res.ok) currentData = await res.json();
@@ -127,9 +120,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Simpan presensi ke Blob
   const savePresensi = async (presensiBaru) => {
-    // Ambil data terbaru dari Blob
     let currentData = {};
     try {
       const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
@@ -137,31 +128,21 @@ export function AppProvider({ children }) {
     } catch (err) {
       console.warn('Gagal fetch data terbaru:', err);
     }
-
-    // Gabungkan presensi baru dengan yang sudah ada
     const presensiLama = currentData.presensiList || [];
     const updatedPresensi = [presensiBaru, ...presensiLama].slice(0, 500);
-
-    // Gabungkan kembali ke seluruh data
     const mergedData = { ...currentData, presensiList: updatedPresensi };
-
-    // Kirim SEMUA data ke Blob melalui API
     const response = await fetch('/api/save-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mergedData),
     });
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || 'Gagal menyimpan presensi ke server');
     }
-
-    // Update state lokal
     setPresensiList(updatedPresensi);
   };
 
-  // Fungsi‑fungsi lain (pengumuman, kalender, dokumen, forum, laporan)
   const savePengumuman = (p) => { const u = [p, ...pengumumanList]; setPengumumanList(u); };
   const deletePengumuman = (id) => { const u = pengumumanList.filter(p => p.id !== id); setPengumumanList(u); };
   const rsvpEvent = (id, nama) => { const u = kalenderKegiatan.map(k => k.id === id ? { ...k, rsvpList: [...(k.rsvpList || []), nama] } : k); setKalenderKegiatan(u); };
