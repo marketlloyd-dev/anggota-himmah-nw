@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
-// Ikon SVG inline
 const LockIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -58,6 +57,12 @@ export default function LoginAnggota() {
             Masuk
           </button>
         </form>
+        <p className="text-green-300/50 text-xs mt-4">
+          Belum punya akun?{' '}
+          <button onClick={() => navigate('/daftar')} className="text-green-300 hover:underline">
+            Daftar di sini
+          </button>
+        </p>
       </div>
     </div>
   );

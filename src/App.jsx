@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import LoginAnggota from './pages/LoginAnggota';
 import DashboardAnggota from './pages/DashboardAnggota';
+import DaftarAnggota from './pages/DaftarAnggota';
 
 export default function App() {
   return (
@@ -9,6 +10,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LoginAnggota />} />
           <Route path="/dashboard" element={<DashboardAnggota />} />
+          <Route path="/daftar" element={<DaftarAnggota />} />
         </Routes>
       </main>
     </div>
