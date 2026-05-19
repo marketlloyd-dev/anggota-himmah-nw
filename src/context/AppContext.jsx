@@ -41,19 +41,19 @@ export function AppProvider({ children }) {
     localStorage.removeItem('himmah_current_anggota');
   };
 
-  const saveAnggotaList = async (data) => {
-    setAnggotaList(data);
-    localStorage.setItem('himmah_anggota', JSON.stringify(data));
-    try {
-      await fetch('/api/save-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ anggotaList: data }),
-      });
-    } catch (err) {
-      console.error('Gagal menyimpan ke Blob:', err);
-    }
-  };
+const saveAnggotaList = async (data) => {
+  setAnggotaList(data);
+  localStorage.setItem('himmah_anggota', JSON.stringify(data));
+  try {
+    await fetch('/api/save-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ anggotaList: data }),
+    });
+  } catch (err) {
+    console.error('Gagal menyimpan ke Blob:', err);
+  }
+};
 
   if (!dataLoaded) {
     return (

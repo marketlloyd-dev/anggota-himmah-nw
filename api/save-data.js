@@ -7,7 +7,17 @@ export default async function handler(req, res) {
 
   try {
     const data = req.body;
-    await put('data.json', JSON.stringify(data), {
+
+    // Gabungkan dengan data yang sudah ada (opsional, tapi lebih aman)
+    const existingRes = await fetch('https://trwurgahpjquoqvn.public.blob.vercel-storage.com/data.json');
+    let existingData = {};
+    if (existingRes.ok) {
+      existingData = await existingRes.json();
+    }
+
+    const mergedData = { ...existingData, ...data };
+
+    await put('data.json', JSON.stringify(mergedData), {
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
