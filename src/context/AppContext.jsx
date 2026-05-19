@@ -153,25 +153,41 @@ export function AppProvider({ children }) {
     }
   };
 
-  const savePresensi = async (presensiBaru) => {
+ const savePresensi = async (presensiBaru) => {
+  try {
+    // 1. Ambil presensi terbaru dari Blob dulu (dengan token)
+    const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
     let currentData = {};
-    try {
-      const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
-      if (res.ok) currentData = await res.json();
-    } catch (err) { console.warn('Gagal fetch data terbaru:', err); }
+    if (res.ok) {
+      currentData = await res.json();
+    }
+
+    // 2. Gabungkan presensi baru
     const presensiLama = currentData.presensiList || [];
     const updatedPresensi = [presensiBaru, ...presensiLama].slice(0, 500);
+
+    // 3. Update state lokal
     setPresensiList(updatedPresensi);
     localStorage.setItem('himmah_presensi', JSON.stringify(updatedPresensi));
-    const updatedData = { ...currentData, presensiList: updatedPresensi };
-    try {
-      await fetch('/api/save-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData),
-      });
-    } catch (err) { console.error('Gagal menyimpan presensi ke Blob:', err); }
-  };
+
+    // 4. Kirim ke API untuk simpan ke Blob
+    const response = await fetch('/api/save-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presensiList: updatedPresensi }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Gagal menyimpan ke Blob');
+    }
+
+    console.log('Presensi berhasil disimpan ke Blob');
+  } catch (err) {
+    console.error('Gagal menyimpan presensi:', err);
+    alert('Gagal menyimpan presensi. Coba lagi nanti.');
+  }
+};
 
   const savePengumuman = (p) => { const u = [p, ...pengumumanList]; setPengumumanList(u); localStorage.setItem('himmah_pengumuman', JSON.stringify(u)); };
   const deletePengumuman = (id) => { const u = pengumumanList.filter(p => p.id !== id); setPengumumanList(u); localStorage.setItem('himmah_pengumuman', JSON.stringify(u)); };
