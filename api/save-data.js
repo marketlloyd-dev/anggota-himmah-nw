@@ -6,17 +6,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = req.body;
+    const newData = req.body;
 
-    // Gabungkan dengan data yang sudah ada (opsional, tapi lebih aman)
-    const existingRes = await fetch('https://trwurgahpjquoqvn.public.blob.vercel-storage.com/data.json');
+    // 1. Ambil data existing dari Blob
     let existingData = {};
-    if (existingRes.ok) {
-      existingData = await existingRes.json();
+    try {
+      const existingRes = await fetch(
+        'https://trwurgahpjquoqvn.public.blob.vercel-storage.com/data.json'
+      );
+      if (existingRes.ok) {
+        existingData = await existingRes.json();
+      }
+    } catch (e) {
+      console.warn('Gagal fetch data existing, buat baru');
     }
 
-    const mergedData = { ...existingData, ...data };
+    // 2. Gabungkan data baru ke data existing
+    const mergedData = { ...existingData, ...newData };
 
+    // 3. Simpan kembali ke Blob
     await put('data.json', JSON.stringify(mergedData), {
       access: 'public',
       contentType: 'application/json',
