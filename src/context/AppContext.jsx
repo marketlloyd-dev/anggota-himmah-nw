@@ -24,7 +24,12 @@ export function AppProvider({ children }) {
         const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
         if (res.ok) {
           const json = await res.json();
-          // Ambil semua anggota dari data.divisi
+
+          // 1. Ambil pengurus inti (Ketua, Sekretaris, Bendahara)
+          const pengurusData = json.pengurus || { ketua: { nama: '' }, sekretaris: { nama: '' }, bendahara: { nama: '' } };
+          setPengurus(pengurusData);
+
+          // 2. Ambil semua anggota dari divisi
           const anggotaDariDivisi = [];
           if (json.divisi) {
             json.divisi.forEach(div => {
@@ -45,9 +50,53 @@ export function AppProvider({ children }) {
               }
             });
           }
+
+          // 3. Tambahkan pengurus inti ke daftar anggota (jika belum ada)
+          if (pengurusData.ketua?.nama && pengurusData.ketua.nama.trim() !== '') {
+            const sudahAda = anggotaDariDivisi.find(a => a.nama === pengurusData.ketua.nama);
+            if (!sudahAda) {
+              anggotaDariDivisi.push({
+                nama: pengurusData.ketua.nama,
+                divisi: 'Ketua Umum',
+                jabatan: 'Ketua Umum',
+                foto: pengurusData.ketua.foto || '',
+                password: '1234',
+                jurusan: '',
+                angkatan: '',
+              });
+            }
+          }
+          if (pengurusData.sekretaris?.nama && pengurusData.sekretaris.nama.trim() !== '') {
+            const sudahAda = anggotaDariDivisi.find(a => a.nama === pengurusData.sekretaris.nama);
+            if (!sudahAda) {
+              anggotaDariDivisi.push({
+                nama: pengurusData.sekretaris.nama,
+                divisi: 'Sekretaris',
+                jabatan: 'Sekretaris',
+                foto: pengurusData.sekretaris.foto || '',
+                password: '1234',
+                jurusan: '',
+                angkatan: '',
+              });
+            }
+          }
+          if (pengurusData.bendahara?.nama && pengurusData.bendahara.nama.trim() !== '') {
+            const sudahAda = anggotaDariDivisi.find(a => a.nama === pengurusData.bendahara.nama);
+            if (!sudahAda) {
+              anggotaDariDivisi.push({
+                nama: pengurusData.bendahara.nama,
+                divisi: 'Bendahara',
+                jabatan: 'Bendahara',
+                foto: pengurusData.bendahara.foto || '',
+                password: '1234',
+                jurusan: '',
+                angkatan: '',
+              });
+            }
+          }
+
           setAllAnggota(anggotaDariDivisi);
           setBeritaInternal(json.beritaInternal || []);
-          setPengurus(json.pengurus || { ketua: { nama: '' }, sekretaris: { nama: '' }, bendahara: { nama: '' } });
           setPresensiList(json.presensiList || []);
           setPengumumanList(json.pengumumanList || []);
           setKalenderKegiatan(json.kalenderKegiatan || []);
@@ -76,18 +125,17 @@ export function AppProvider({ children }) {
   const anggotaLogout = () => {
     setCurrentAnggota(null);
     localStorage.removeItem('himmah_current_anggota');
-    setPresensiList([]);
   };
 
   const editProfil = async (data) => {
     const updated = allAnggota.map(a => {
-      if (a.nama === data.nama && a.divisi === data.divisi) {
+      if (a.nama === data.nama) {
         return { ...a, jurusan: data.jurusan, angkatan: data.angkatan, foto: data.foto, password: data.password || a.password };
       }
       return a;
     });
     setAllAnggota(updated);
-    if (currentAnggota && currentAnggota.nama === data.nama && currentAnggota.divisi === data.divisi) {
+    if (currentAnggota && currentAnggota.nama === data.nama) {
       const updatedCurrent = { ...currentAnggota, jurusan: data.jurusan, angkatan: data.angkatan, foto: data.foto, password: data.password || currentAnggota.password };
       setCurrentAnggota(updatedCurrent);
       localStorage.setItem('himmah_current_anggota', JSON.stringify(updatedCurrent));
