@@ -1,4 +1,4 @@
-// api/save-data.js (Portal Anggota) – versi tangguh tanpa localStorage
+// api/save-data.js (Portal Anggota)
 import { put } from '@vercel/blob';
 
 export default async function handler(req, res) {
@@ -29,10 +29,11 @@ export default async function handler(req, res) {
     // 2. Gabungkan data baru dengan data yang sudah ada
     const mergedData = { ...existingData, ...newData };
 
-    // 3. Tulis ulang ke Blob
+    // 3. Tulis ulang ke Blob dengan allowOverwrite
     await put('data.json', JSON.stringify(mergedData), {
       access: 'public',
       contentType: 'application/json',
+      allowOverwrite: true,
       addRandomSuffix: false,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
