@@ -96,35 +96,39 @@ export function AppProvider({ children }) {
     setTimeout(() => setProfilEditSukses(false), 3000);
   };
 
-  const savePresensi = async (data) => {
-    // Ambil presensi terbaru dari Blob dulu
-    let currentPresensi = [];
-    try {
-      const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
-      if (res.ok) {
-        const json = await res.json();
-        currentPresensi = json.presensiList || [];
-      }
-    } catch (err) {
-      console.warn('Gagal fetch presensi terbaru:', err);
-      currentPresensi = presensiList;
+const savePresensi = async (presensiBaru) => {
+  // 1. Ambil seluruh data dari Blob
+  let currentData = {};
+  try {
+    const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
+    if (res.ok) {
+      currentData = await res.json();
     }
+  } catch (err) {
+    console.warn('Gagal fetch data terbaru:', err);
+  }
 
-    const updated = [data, ...currentPresensi].slice(0, 500);
-    setPresensiList(updated);
-    localStorage.setItem('himmah_presensi', JSON.stringify(updated));
+  // 2. Gabungkan presensi baru dengan data yang sudah ada
+  const presensiLama = currentData.presensiList || [];
+  const updatedPresensi = [presensiBaru, ...presensiLama].slice(0, 500);
 
-    // Kirim ke Blob melalui API
-    try {
-      await fetch('/api/save-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ presensiList: updated }),
-      });
-    } catch (err) {
-      console.error('Gagal menyimpan presensi ke Blob:', err);
-    }
-  };
+  // 3. Simpan ke state lokal
+  setPresensiList(updatedPresensi);
+  localStorage.setItem('himmah_presensi', JSON.stringify(updatedPresensi));
+
+  // 4. Kirim seluruh data (dengan presensi yang sudah diperbarui) ke Blob melalui API
+  const updatedData = { ...currentData, presensiList: updatedPresensi };
+  
+  try {
+    await fetch('/api/save-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedData), // kirim semua data, bukan hanya presensi
+    });
+  } catch (err) {
+    console.error('Gagal menyimpan presensi ke Blob:', err);
+  }
+};
 
   const savePengumuman = (pengumumanBaru) => {
     const updated = [pengumumanBaru, ...pengumumanList];
