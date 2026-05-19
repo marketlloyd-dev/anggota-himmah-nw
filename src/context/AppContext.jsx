@@ -3,17 +3,12 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  // URL data.json dari Vercel Blob yang sama dengan website utama
   const DATA_BLOB_URL = 'https://trwurgahpjquoqvn.public.blob.vercel-storage.com/data.json';
-  const LOCAL_KEY = 'himmah_data';
-
-  // State anggota
   const [anggotaList, setAnggotaList] = useState([]);
   const [currentAnggota, setCurrentAnggota] = useState(null);
   const [beritaInternal, setBeritaInternal] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Load data dari Blob
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -28,12 +23,8 @@ export function AppProvider({ children }) {
       }
       setDataLoaded(true);
     };
-
     const savedLogin = localStorage.getItem('himmah_current_anggota');
-    if (savedLogin) {
-      setCurrentAnggota(JSON.parse(savedLogin));
-    }
-
+    if (savedLogin) setCurrentAnggota(JSON.parse(savedLogin));
     loadData();
   }, []);
 
@@ -41,7 +32,6 @@ export function AppProvider({ children }) {
     setCurrentAnggota(anggota);
     localStorage.setItem('himmah_current_anggota', JSON.stringify(anggota));
   };
-
   const anggotaLogout = () => {
     setCurrentAnggota(null);
     localStorage.removeItem('himmah_current_anggota');
@@ -56,15 +46,7 @@ export function AppProvider({ children }) {
   }
 
   return (
-    <AppContext.Provider
-      value={{
-        anggotaList,
-        currentAnggota,
-        anggotaLogin,
-        anggotaLogout,
-        beritaInternal,
-      }}
-    >
+    <AppContext.Provider value={{ anggotaList, currentAnggota, anggotaLogin, anggotaLogout, beritaInternal }}>
       {children}
     </AppContext.Provider>
   );
