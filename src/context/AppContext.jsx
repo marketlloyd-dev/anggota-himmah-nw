@@ -35,29 +35,23 @@ export function AppProvider({ children }) {
           setPengurus(json.pengurus || { ketua: { nama: '' }, sekretaris: { nama: '' }, bendahara: { nama: '' } });
           setPresensiList(json.presensiList || []);
           setPengumumanList(json.pengumumanList || []);
+          setKalenderKegiatan(json.kalenderKegiatan || []);
+          setDokumenList(json.dokumenList || []);
+          setForumMessages(json.forumMessages || []);
+          setLaporanList(json.laporanList || []);
         }
       } catch (err) {
         console.warn('Gagal memuat data dari Blob:', err);
       }
       
-      const savedPresensi = localStorage.getItem('himmah_presensi');
-      if (savedPresensi) setPresensiList(JSON.parse(savedPresensi));
-      const savedPengumuman = localStorage.getItem('himmah_pengumuman');
-      if (savedPengumuman) setPengumumanList(JSON.parse(savedPengumuman));
-      const savedKalender = localStorage.getItem('himmah_kalender');
-      if (savedKalender) setKalenderKegiatan(JSON.parse(savedKalender));
-      const savedDokumen = localStorage.getItem('himmah_dokumen');
-      if (savedDokumen) setDokumenList(JSON.parse(savedDokumen));
-      const savedForum = localStorage.getItem('himmah_forum');
-      if (savedForum) setForumMessages(JSON.parse(savedForum));
-      const savedLaporan = localStorage.getItem('himmah_laporan');
-      if (savedLaporan) setLaporanList(JSON.parse(savedLaporan));
+      const savedLogin = localStorage.getItem('himmah_current_anggota');
+      if (savedLogin) {
+        const parsed = JSON.parse(savedLogin);
+        setCurrentAnggota(parsed);
+      }
       
       setDataLoaded(true);
     };
-    
-    const savedLogin = localStorage.getItem('himmah_current_anggota');
-    if (savedLogin) setCurrentAnggota(JSON.parse(savedLogin));
     
     loadData();
   }, []);
@@ -70,6 +64,8 @@ export function AppProvider({ children }) {
   const anggotaLogout = () => {
     setCurrentAnggota(null);
     localStorage.removeItem('himmah_current_anggota');
+    // Reset presensi state saat logout
+    setPresensiList([]);
   };
 
   const saveAnggotaList = async (data) => {
@@ -90,18 +86,44 @@ export function AppProvider({ children }) {
     const updated = anggotaList.map(a => a.nim === data.nim ? { ...a, ...data } : a);
     setAnggotaList(updated);
     localStorage.setItem('himmah_anggota', JSON.stringify(updated));
+    
     if (currentAnggota && currentAnggota.nim === data.nim) {
       setCurrentAnggota({ ...currentAnggota, ...data });
       localStorage.setItem('himmah_current_anggota', JSON.stringify({ ...currentAnggota, ...data }));
     }
+    
     setProfilEditSukses(true);
     setTimeout(() => setProfilEditSukses(false), 3000);
   };
 
-  const savePresensi = (data) => {
-    const updated = [data, ...presensiList].slice(0, 500);
+  const savePresensi = async (data) => {
+    // Ambil presensi terbaru dari Blob dulu
+    let currentPresensi = [];
+    try {
+      const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
+      if (res.ok) {
+        const json = await res.json();
+        currentPresensi = json.presensiList || [];
+      }
+    } catch (err) {
+      console.warn('Gagal fetch presensi terbaru:', err);
+      currentPresensi = presensiList;
+    }
+
+    const updated = [data, ...currentPresensi].slice(0, 500);
     setPresensiList(updated);
     localStorage.setItem('himmah_presensi', JSON.stringify(updated));
+
+    // Kirim ke Blob melalui API
+    try {
+      await fetch('/api/save-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ presensiList: updated }),
+      });
+    } catch (err) {
+      console.error('Gagal menyimpan presensi ke Blob:', err);
+    }
   };
 
   const savePengumuman = (pengumumanBaru) => {
@@ -125,28 +147,28 @@ export function AppProvider({ children }) {
     localStorage.setItem('himmah_kalender', JSON.stringify(updated));
   };
 
-  const saveDokumen = (d) => {
-    const updated = [d, ...dokumenList];
-    setDokumenList(updated);
-    localStorage.setItem('himmah_dokumen', JSON.stringify(updated));
+  const saveDokumen = (d) => { 
+    const updated = [d, ...dokumenList]; 
+    setDokumenList(updated); 
+    localStorage.setItem('himmah_dokumen', JSON.stringify(updated)); 
   };
-
-  const deleteDokumen = (id) => {
-    const updated = dokumenList.filter(d => d.id !== id);
-    setDokumenList(updated);
-    localStorage.setItem('himmah_dokumen', JSON.stringify(updated));
+  
+  const deleteDokumen = (id) => { 
+    const updated = dokumenList.filter(d => d.id !== id); 
+    setDokumenList(updated); 
+    localStorage.setItem('himmah_dokumen', JSON.stringify(updated)); 
   };
-
-  const saveForumMessage = (msg) => {
-    const updated = [...forumMessages, msg];
-    setForumMessages(updated);
-    localStorage.setItem('himmah_forum', JSON.stringify(updated));
+  
+  const saveForumMessage = (msg) => { 
+    const updated = [...forumMessages, msg]; 
+    setForumMessages(updated); 
+    localStorage.setItem('himmah_forum', JSON.stringify(updated)); 
   };
-
-  const saveLaporan = (l) => {
-    const updated = [l, ...laporanList];
-    setLaporanList(updated);
-    localStorage.setItem('himmah_laporan', JSON.stringify(updated));
+  
+  const saveLaporan = (l) => { 
+    const updated = [l, ...laporanList]; 
+    setLaporanList(updated); 
+    localStorage.setItem('himmah_laporan', JSON.stringify(updated)); 
   };
 
   if (!dataLoaded) {
