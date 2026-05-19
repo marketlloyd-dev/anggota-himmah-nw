@@ -1,4 +1,4 @@
-// src/context/AppContext.jsx (Portal Anggota) – tanpa localStorage untuk presensi
+// src/context/AppContext.jsx (Portal Anggota)
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AppContext = createContext();
@@ -80,7 +80,6 @@ export function AppProvider({ children }) {
         console.warn('Gagal memuat data dari Blob:', err);
       }
 
-      // Muat sesi anggota yang tersimpan
       const savedLogin = localStorage.getItem('himmah_current_anggota');
       if (savedLogin) setCurrentAnggota(JSON.parse(savedLogin));
 
@@ -113,19 +112,24 @@ export function AppProvider({ children }) {
     setProfilEditSukses(true);
     setTimeout(() => setProfilEditSukses(false), 3000);
     try {
+      // Ambil data terbaru dari Blob, gabungkan, lalu kirim
+      let currentData = {};
+      const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
+      if (res.ok) currentData = await res.json();
+      const mergedData = { ...currentData, allAnggota: updated };
       await fetch('/api/save-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ allAnggota: updated }),
+        body: JSON.stringify(mergedData),
       });
     } catch (err) {
       console.error('Gagal menyimpan profil:', err);
     }
   };
 
-  // ========== INI FUNGSI PENTING: savePresensi murni ke Blob ==========
+  // Simpan presensi ke Blob
   const savePresensi = async (presensiBaru) => {
-    // 1. Ambil data terbaru dari Blob
+    // Ambil data terbaru dari Blob
     let currentData = {};
     try {
       const res = await fetch(`${DATA_BLOB_URL}?t=${Date.now()}`);
@@ -134,14 +138,14 @@ export function AppProvider({ children }) {
       console.warn('Gagal fetch data terbaru:', err);
     }
 
-    // 2. Gabungkan presensi baru dengan yang sudah ada
+    // Gabungkan presensi baru dengan yang sudah ada
     const presensiLama = currentData.presensiList || [];
     const updatedPresensi = [presensiBaru, ...presensiLama].slice(0, 500);
 
-    // 3. Gabungkan kembali ke seluruh data
+    // Gabungkan kembali ke seluruh data
     const mergedData = { ...currentData, presensiList: updatedPresensi };
 
-    // 4. Simpan ke Blob melalui API (pastikan API mengembalikan response)
+    // Kirim SEMUA data ke Blob melalui API
     const response = await fetch('/api/save-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -153,7 +157,7 @@ export function AppProvider({ children }) {
       throw new Error(errorData.error || 'Gagal menyimpan presensi ke server');
     }
 
-    // 5. Update state lokal
+    // Update state lokal
     setPresensiList(updatedPresensi);
   };
 
