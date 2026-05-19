@@ -16,6 +16,10 @@ export function AppProvider({ children }) {
   });
   const [presensiList, setPresensiList] = useState([]);
   const [pengumumanList, setPengumumanList] = useState([]);
+  const [kalenderKegiatan, setKalenderKegiatan] = useState([]);
+  const [dokumenList, setDokumenList] = useState([]);
+  const [forumMessages, setForumMessages] = useState([]);
+  const [laporanList, setLaporanList] = useState([]);
   const [profilEditSukses, setProfilEditSukses] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -28,11 +32,7 @@ export function AppProvider({ children }) {
           setAnggotaList(json.anggotaList || []);
           setBeritaInternal(json.beritaInternal || []);
           setInviteCode(json.inviteCode || 'HIMMAH2024');
-          setPengurus(json.pengurus || { 
-            ketua: { nama: '' }, 
-            sekretaris: { nama: '' }, 
-            bendahara: { nama: '' } 
-          });
+          setPengurus(json.pengurus || { ketua: { nama: '' }, sekretaris: { nama: '' }, bendahara: { nama: '' } });
           setPresensiList(json.presensiList || []);
           setPengumumanList(json.pengumumanList || []);
         }
@@ -40,12 +40,18 @@ export function AppProvider({ children }) {
         console.warn('Gagal memuat data dari Blob:', err);
       }
       
-      // Load presensi dan pengumuman dari localStorage
       const savedPresensi = localStorage.getItem('himmah_presensi');
       if (savedPresensi) setPresensiList(JSON.parse(savedPresensi));
-      
       const savedPengumuman = localStorage.getItem('himmah_pengumuman');
       if (savedPengumuman) setPengumumanList(JSON.parse(savedPengumuman));
+      const savedKalender = localStorage.getItem('himmah_kalender');
+      if (savedKalender) setKalenderKegiatan(JSON.parse(savedKalender));
+      const savedDokumen = localStorage.getItem('himmah_dokumen');
+      if (savedDokumen) setDokumenList(JSON.parse(savedDokumen));
+      const savedForum = localStorage.getItem('himmah_forum');
+      if (savedForum) setForumMessages(JSON.parse(savedForum));
+      const savedLaporan = localStorage.getItem('himmah_laporan');
+      if (savedLaporan) setLaporanList(JSON.parse(savedLaporan));
       
       setDataLoaded(true);
     };
@@ -84,12 +90,10 @@ export function AppProvider({ children }) {
     const updated = anggotaList.map(a => a.nim === data.nim ? { ...a, ...data } : a);
     setAnggotaList(updated);
     localStorage.setItem('himmah_anggota', JSON.stringify(updated));
-    
     if (currentAnggota && currentAnggota.nim === data.nim) {
       setCurrentAnggota({ ...currentAnggota, ...data });
       localStorage.setItem('himmah_current_anggota', JSON.stringify({ ...currentAnggota, ...data }));
     }
-    
     setProfilEditSukses(true);
     setTimeout(() => setProfilEditSukses(false), 3000);
   };
@@ -112,6 +116,39 @@ export function AppProvider({ children }) {
     localStorage.setItem('himmah_pengumuman', JSON.stringify(updated));
   };
 
+  const rsvpEvent = (id, nim) => {
+    const updated = kalenderKegiatan.map(k => {
+      if (k.id === id) return { ...k, rsvpList: [...(k.rsvpList || []), nim] };
+      return k;
+    });
+    setKalenderKegiatan(updated);
+    localStorage.setItem('himmah_kalender', JSON.stringify(updated));
+  };
+
+  const saveDokumen = (d) => {
+    const updated = [d, ...dokumenList];
+    setDokumenList(updated);
+    localStorage.setItem('himmah_dokumen', JSON.stringify(updated));
+  };
+
+  const deleteDokumen = (id) => {
+    const updated = dokumenList.filter(d => d.id !== id);
+    setDokumenList(updated);
+    localStorage.setItem('himmah_dokumen', JSON.stringify(updated));
+  };
+
+  const saveForumMessage = (msg) => {
+    const updated = [...forumMessages, msg];
+    setForumMessages(updated);
+    localStorage.setItem('himmah_forum', JSON.stringify(updated));
+  };
+
+  const saveLaporan = (l) => {
+    const updated = [l, ...laporanList];
+    setLaporanList(updated);
+    localStorage.setItem('himmah_laporan', JSON.stringify(updated));
+  };
+
   if (!dataLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#004d24]">
@@ -122,21 +159,16 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      anggotaList,
-      saveAnggotaList,
-      currentAnggota,
-      anggotaLogin,
-      anggotaLogout,
-      beritaInternal,
-      inviteCode,
-      pengurus,
-      presensiList,
-      savePresensi,
-      pengumumanList,
-      savePengumuman,
-      deletePengumuman,
-      editProfil,
-      profilEditSukses
+      anggotaList, saveAnggotaList,
+      currentAnggota, anggotaLogin, anggotaLogout,
+      beritaInternal, inviteCode, pengurus,
+      presensiList, savePresensi,
+      pengumumanList, savePengumuman, deletePengumuman,
+      kalenderKegiatan, rsvpEvent,
+      dokumenList, saveDokumen, deleteDokumen,
+      forumMessages, saveForumMessage,
+      laporanList, saveLaporan,
+      editProfil, profilEditSukses
     }}>
       {children}
     </AppContext.Provider>
